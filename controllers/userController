@@ -1,0 +1,76 @@
+const User = require('../models/User');
+const Thought = require('../models/Thought');
+
+module.exports = {
+
+    getUsers(req, res) {
+        User.find()
+        .then((users) => res.json(users))
+        .catch((err) => res.status(500).json(err));
+    },
+
+    getOneUser(req, res) {
+        User.findOne({ _id: req.params.userId })
+          .select("-__v")
+          .populate("thoughts")
+          .populate("friends")
+          .then((user) =>
+        !user
+          ? res.status(404).json({ message: 'No user with that ID' })
+          : res.json(user)
+      )
+      .catch((err) => res.status(500).json(err));
+      },
+
+    createUser(req, res) {
+        User.create(req.body)
+          .then((dbUserData) => res.json(dbUserData))
+          .catch((err) => res.status(500).json(err));
+    },
+    
+    updateUser({ params, body }, res) {
+      User.findOneAndUpdate({ _id: params.id }, body, { new: true, runValidators: true })
+        .then(dbUserData => {
+          if (!dbUserData) {
+            res.status(404).json({ message: 'No User found with this id!' });
+            return;
+          }
+          res.json(dbUserData);
+        })
+        .catch(err => res.json(err));
+    },
+
+    deleteUser({ params }, res) {
+      Thought.deleteMany({ userId: params.id })
+        .then(() => {
+          User.findOneAndDelete({ userId: params.id })
+            .then(dbUserData => {
+              if (!dbUserData) {
+                res.status(404).json({ message: 'No User found with this id!' });
+                return;
+              }
+              res.json(dbUserData);
+            });
+        })
+        .catch(err => res.json(err));
+    },
+
+    addFriend(req, res) {
+      let addFriend = User.updateOne(
+        {_id: req.params.userId}, 
+        {$push: {friends: req.params.friendId}},
+        { new: true }
+        )
+        res.status(200).json(addFriend)
+    },
+    
+
+    deleteFriend(req, res) {
+      let delFriend = User.updateOne(
+        {_id: req.params.userId}, 
+        {$pull: {friends: req.params.friendId}},
+        { new: true }
+        )
+        res.status(200).json(delFriend)
+    } 
+};
