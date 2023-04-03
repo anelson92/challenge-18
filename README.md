@@ -43,7 +43,7 @@ N/A
   
 If you have questions or need to reach out, you can find me on Github (https://github.com/anelson92) or by email (amanda92nelson@gmail.com)
  
-##License 
+## License 
 
 MIT License
 
